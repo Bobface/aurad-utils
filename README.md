@@ -51,3 +51,10 @@ sudo cp aurad-status.py /usr/bin/aurad-status
 
 You can then execute the script by simply typing the name into the console. Example:
 `aurad-status`
+
+## How to update
+When changes are made to this repo and you want the latest version, `pull` the changes:
+```
+cd aurad-utils
+git pull
+```
