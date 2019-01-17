@@ -23,6 +23,7 @@ chmod +x <script name.py>
 Example:
 ```
 cd aurad-utils
+chmod +x aurad-status.py
 ./aurad-status.py
 ```
 
