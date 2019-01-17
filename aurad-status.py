@@ -16,6 +16,10 @@ class bcolors:
 	BOLD = '\033[1m'
 	UNDERLINE = '\033[4m'
 
+fetch_latest_version_counter = 0
+version_status = ""
+latest_version = ""
+version = ""
 status = ""
 percentage_uptime = 0
 percentage_downtime = 0
@@ -23,18 +27,22 @@ current_block_num = 0
 
 def read_logs():
 
+	global fetch_latest_version_counter;
+	global version_status;
+	global latest_version;
+	global version;
 	global status;
 	global percentage_uptime;
 	global percentage_downtime;
 	global current_block_num;
 
-	proc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE)
+	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE)
 
 	online = 0
 	offline = 0
 
 	while True:
-		line = proc.stdout.readline().decode("utf-8")
+		line = dockerProc.stdout.readline().decode("utf-8")
 		if line != '':
 			if "STAKING" in line:
 				status = ""
@@ -56,6 +64,30 @@ def read_logs():
 	percentage_uptime = (float(online) / (online + offline)) * 100
 	percentage_downtime = 100 - float(percentage_uptime)
 
+	auraProc = subprocess.Popen(['aura','status'],stdout=subprocess.PIPE)
+
+	version_line = auraProc.stdout.readline().decode("utf-8")
+	if version_line != '':
+		version = version_line.split()[1]
+
+
+	# we don't need to fetch the latest version every time
+	if fetch_latest_version_counter == 0 or fetch_latest_version_counter >= 50:
+		npmProc = subprocess.Popen(['npm','show','@auroradao/aurad-cli','version'],stdout=subprocess.PIPE)
+
+		latest_version_line = npmProc.stdout.readline().decode("utf-8")
+		if latest_version_line != '':
+			latest_version = "v" + latest_version_line.rstrip()
+
+		fetch_latest_version_counter = 1
+	else:
+		fetch_latest_version_counter += 1
+
+
+	if latest_version != version:
+		version_status = bcolors.FAIL + bcolors.BOLD + "YOUR VERSION OF AURAD IS OUTDATED" + bcolors.ENDC
+	else:
+		version_status = bcolors.OKGREEN + "UP TO DATE" + bcolors.ENDC
 
 
 def extract_integers(string):
@@ -77,11 +109,15 @@ def wait():
 		time.sleep(float(sleep_dur)/progress_length)
 
 def reset():
+	global version_status;
+	global version;
 	global status;
 	global percentage_uptime;
 	global percentage_downtime;
 	global current_block_num;
 
+	version_status = ""
+	version = ""
 	status = ""
 	percentage_uptime = 0
 	percentage_downtime = 0
@@ -102,6 +138,7 @@ while True:
 	read_logs()
 	os.system("clear")
 	print("")
+	print("Your version: " + version + " | Latest version: " + latest_version + " | " + version_status)
 	print("Status: " + status+ "\n")
 	print("Uptime: {0:.2f}%\n".format(percentage_uptime))
 	print("Downtime: {0:.2f}%\n".format(percentage_downtime))
