@@ -4,6 +4,11 @@
 
 ## Requirements
 Ubuntu machine with `python3` and `git` installed.
+To check if those are installed:
+```
+python3 --version
+git --version
+```
 
 ## How  to use
 
