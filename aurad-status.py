@@ -55,9 +55,11 @@ def read_logs():
 
 				status += line + bcolors.ENDC
 			elif "Processing blocks" in line:
-				current_block_num = extract_integers(line)[1]
+				if len(extract_integers(line)) >= 2:
+					current_block_num = extract_integers(line)[1]
 			elif "Waiting for" in line:
-				current_block_num = extract_integers(line)[0]
+				if len(extract_integers(line)) >= 1:
+					current_block_num = extract_integers(line)[0]
 		else:
 			break
 
