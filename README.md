@@ -60,4 +60,4 @@ git pull
 ```
 
 ## Having issues?
-If you found a bug you can [write an issue on GitHub](https://github.com/Bobface/aurad-utils/issues) or contact me on Discord: *Bobface#9040*. 
+If you found a bug you can [write an issue on GitHub](https://github.com/Bobface/aurad-utils/issues) or contact me on Discord if you need help installing or using this repo: *Bobface#9040*. 
