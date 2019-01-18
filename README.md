@@ -58,3 +58,6 @@ When changes are made to this repo and you want the latest version, `pull` the c
 cd aurad-utils
 git pull
 ```
+
+## Having issues?
+If you found a bug you can [write an issue on GitHub](https://github.com/Bobface/aurad-utils/issues) or contact me on Discord: *Bobface#9040*. 
