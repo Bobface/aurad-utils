@@ -5,6 +5,7 @@ import os
 import time
 import sys
 import signal
+import json
 
 class bcolors:
 	HEADER = '\033[95m'
@@ -16,6 +17,12 @@ class bcolors:
 	BOLD = '\033[1m'
 	UNDERLINE = '\033[4m'
 
+config_auto_restart = False
+config_wait_before_restart = 0
+config_rpc = ""
+config_download_latest = False
+
+restarts = 0
 fetch_latest_version_counter = 0
 version_status = ""
 latest_version = ""
@@ -24,6 +31,30 @@ status = ""
 percentage_uptime = 0
 percentage_downtime = 0
 current_block_num = 0
+
+was_online_once = False # Don't restart he node when it is syncing
+is_online = False
+offline_seconds = 0
+last_run = time.time()
+
+def read_config():
+	global config_auto_restart;
+	global config_wait_before_restart;
+	global config_download_latest;
+	global config_rpc;
+
+	try:
+		with open('aurad-status-settings.json', 'r') as f:
+  			jobj = json.loads(f.read())
+
+  			config_auto_restart = jobj["auto_restart"]
+  			config_wait_before_restart = jobj["wait_before_restart"]
+  			config_download_latest = jobj["download_latest"]
+  			config_rpc = jobj["rpc"]
+
+	except:
+  		print("Warning: Could not read config file! Continuing with default settings in 3 seconds.")
+  		time.sleep(3)
 
 def read_logs():
 
@@ -35,6 +66,8 @@ def read_logs():
 	global percentage_uptime;
 	global percentage_downtime;
 	global current_block_num;
+	global is_online;
+	global was_online_once;
 
 	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE)
 
@@ -49,9 +82,12 @@ def read_logs():
 				if "ONLINE" in line:
 					online += 1
 					status += bcolors.OKGREEN
+					was_online_once = True
+					is_online = True
 				else:
 					offline += 1
 					status += bcolors.FAIL
+					is_online = False
 
 				status += line + bcolors.ENDC
 			elif "Processing blocks" in line:
@@ -63,7 +99,11 @@ def read_logs():
 		else:
 			break
 
-	percentage_uptime = (float(online) / (online + offline)) * 100
+	if online + offline == 0:
+		percentage_uptime = 0
+	else:
+		percentage_uptime = (float(online) / (online + offline)) * 100
+
 	percentage_downtime = 100 - float(percentage_uptime)
 
 	auraProc = subprocess.Popen(['aura','status'],stdout=subprocess.PIPE)
@@ -90,6 +130,44 @@ def read_logs():
 		version_status = bcolors.FAIL + bcolors.BOLD + "YOUR VERSION OF AURAD IS OUTDATED" + bcolors.ENDC
 	else:
 		version_status = bcolors.OKGREEN + "UP TO DATE" + bcolors.ENDC
+
+
+def check_for_restart():
+	global config_auto_restart;
+	global config_wait_before_restart;
+	global config_download_latest;
+	global config_rpc;
+	global offline_seconds;
+	global restarts;
+	global was_online_once;
+
+	if not config_auto_restart:
+		return
+
+	if offline_seconds > config_wait_before_restart:
+
+		print("Offline for " + str(int(offline_seconds)) + " seconds. Restarting.")
+
+		offline_seconds = 0
+		was_online_once = False
+
+		
+		print("Stopping...")
+		subprocess.Popen(['aura','stop']).wait()
+
+		if config_download_latest:
+			print("Downloading latest version...")
+			subprocess.Popen(['npm','install','-g','@auroradao/aurad-cli']).wait()
+
+		print("Starting...")
+
+		if config_rpc != "" and config_rpc != " ":
+			subprocess.Popen(['aura','start','--rpc',config_rpc]).wait()
+		else:
+			subprocess.Popen(['aura','start']).wait()
+
+		restarts += 1
+		os.system("clear")
 
 
 def extract_integers(string):
@@ -135,15 +213,30 @@ signal.signal(signal.SIGINT, exit_handler)
 sys.stdout.write("\033[?25l")
 sys.stdout.flush()
 
+read_config()
+
 while True:
 	reset()
 	read_logs()
 	os.system("clear")
+
+	current_time = time.time()
+
+	if was_online_once and not is_online:
+		offline_seconds += current_time - last_run
+		check_for_restart()
+	elif is_online:
+		offline_seconds = 0
+
+	last_run = current_time
+
+	
 	print("")
 	print("Your version: " + version + " | Latest version: " + latest_version + " | " + version_status)
 	print("Status: " + status+ "\n")
 	print("Uptime: {0:.2f}%\n".format(percentage_uptime))
 	print("Downtime: {0:.2f}%\n".format(percentage_downtime))
+	print("Restarts: " + str(restarts) + "\n")
 	print("Current block: " + str(current_block_num) + "\n")
 	wait()
 
