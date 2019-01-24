@@ -17,11 +17,20 @@ git --version
 git clone https://github.com/Bobface/aurad-utils.git 
 cd aurad-utils
 ``` 
+### Setup
+Run the setup script if you want to change some settings. This is only required once for each update.
+After a update is released, it might be necessary to re-run the setup script.
+Example:
+```
+cd aurad-utils
+./setup-aurad-status.py
+```
+After the setup is complete, you can run the script as described below.
+In case you want to change the settings again, just re-run the setup script.
+
 ### Execute a script
 ```
 cd aurad-utils
-# Make it executable, only required once
-chmod +x <script name.py>
 ./<script name.py>
 ```
 
@@ -35,22 +44,6 @@ chmod +x aurad-status.py
 ### Stop a script
 
 Press `CTRL+C`
-
-### Install a script system-wide
-
-```
-cd aurad-utils
-sudo cp <script name.py> /usr/bin/<name>
-```
-
-Example:
-```
-cd aurad-utils
-sudo cp aurad-status.py /usr/bin/aurad-status
-```
-
-You can then execute the script by simply typing the name into the console. Example:
-`aurad-status`
 
 ## How to update
 When changes are made to this repo and you want the latest version, `pull` the changes:
