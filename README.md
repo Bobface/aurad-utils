@@ -37,7 +37,6 @@ cd aurad-utils
 Example:
 ```
 cd aurad-utils
-chmod +x aurad-status.py
 ./aurad-status.py
 ```
 
