@@ -1,6 +1,6 @@
 # Utility scripts for AuraD
 
-
+For more information about AURA Staking see also [auraview.net](https://auraview.net)
 
 ## Requirements
 Ubuntu machine with `python3` and `git` installed.
