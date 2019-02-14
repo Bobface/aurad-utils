@@ -91,7 +91,7 @@ usermod -aG docker $new_user_name
 apt install build-essential python docker-compose -y
 ufw allow 22/tcp
 ufw allow 8443/tcp
-ufw enable
+echo y | ufw enable
 
 
 # Running as new user 
