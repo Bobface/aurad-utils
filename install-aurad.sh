@@ -82,13 +82,17 @@ echo "Installation begins now"
 echo ""
 
 apt update -y
-apt install apt-transport-https ca-certificates curl software-properties-common -y
+apt install apt-transport-https ca-certificates curl software-properties-common ufw -y
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 apt update -y
 apt install docker-ce -y
 usermod -aG docker $new_user_name
 apt install build-essential python docker-compose -y
+ufw allow 22/tcp
+ufw allow 8443/tcp
+ufw enable
+
 
 # Running as new user 
 
