@@ -31,6 +31,7 @@ status = ""
 percentage_uptime = 0
 percentage_downtime = 0
 current_block_num = 0
+last_line = ""
 
 was_online_once = False # Don't restart he node when it is syncing
 is_online = False
@@ -45,16 +46,24 @@ def read_config():
 
 	try:
 		with open('aurad-status-settings.json', 'r') as f:
-  			jobj = json.loads(f.read())
+			jobj = json.loads(f.read())
 
-  			config_auto_restart = jobj["auto_restart"]
-  			config_wait_before_restart = jobj["wait_before_restart"]
-  			config_download_latest = jobj["download_latest"]
-  			config_rpc = jobj["rpc"]
+			config_auto_restart = jobj["auto_restart"]
+			config_wait_before_restart = jobj["wait_before_restart"]
+			config_download_latest = jobj["download_latest"]
+			config_rpc = jobj["rpc"]
+			
+			if config_auto_restart == True and config_wait_before_restart < 60:
+				print("Timeout before restart must be at least 60 seconds. Using default settings with auto-restart disabled.")
+				config_auto_restart = False
+				config_wait_before_restart = 0
+				config_rpc = ""
+				config_download_latest = False
+				time.sleep(3)
 
 	except:
-  		print("Warning: Could not read config file! Continuing with default settings in 3 seconds.")
-  		time.sleep(3)
+		print("Warning: Could not read config file! Continuing with default settings in 3 seconds.")
+		time.sleep(3)
 
 def read_logs():
 
@@ -68,20 +77,27 @@ def read_logs():
 	global current_block_num;
 	global is_online;
 	global was_online_once;
+	global last_line;
 
 	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE)
 
 	online = 0
 	offline = 0
 
+	last_line_current_run = ""
 	while True:
 		line = dockerProc.stdout.readline().decode("utf-8")
 		if line != '':
+			last_line_current_run = line
 			if "STAKING" in line:
 				status = ""
 				if "ONLINE" in line:
 					online += 1
 					status += bcolors.OKGREEN
+
+					if not was_online_once:
+						offline_seconds = 0
+
 					was_online_once = True
 					is_online = True
 				else:
@@ -98,6 +114,12 @@ def read_logs():
 					current_block_num = extract_integers(line)[0]
 		else:
 			break
+			
+	# Check that the container has not died and is not stuck
+	if last_line_current_run == last_line:
+		is_online = False
+	
+	last_line = last_line_current_run
 
 	if online + offline == 0:
 		percentage_uptime = 0

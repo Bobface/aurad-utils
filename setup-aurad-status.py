@@ -20,13 +20,18 @@ inp = input("Do you want to restart your node automatically when it goes offline
 if inp == "Y" or inp == "y":
 	auto_restart = True
 
-	inp = input("Enter the time in seconds your node must be offline before restarting: ")
+	inp = input("Enter the time in seconds your node must be offline before restarting. Please use at least 60: ")
 
 	if not inp.isdigit():
 		print("Invalid input")
 		exit()
 	else:
 		wait_before_restart = int(inp)
+		
+		if wait_before_restart < 60:
+			print("Timeout before restart must be at least 60 seconds. Exiting.")
+			exit()
+			
 
 		rpc = input("Enter the RPC you want to use (for example \"https://mainnet.infura.io/v3/<API KEY>\"). Leave empty for default: ")
 
