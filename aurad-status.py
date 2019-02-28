@@ -79,7 +79,7 @@ def read_logs():
 	global was_online_once;
 	global last_line;
 
-	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE)
+	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
 	online = 0
 	offline = 0
