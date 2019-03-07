@@ -32,6 +32,7 @@ percentage_uptime = 0
 percentage_downtime = 0
 current_block_num = 0
 last_line = ""
+container_died = False
 
 was_online_once = False # Don't restart he node when it is syncing
 is_online = False
@@ -78,6 +79,7 @@ def read_logs():
 	global is_online;
 	global was_online_once;
 	global last_line;
+	global container_died;
 
 	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
@@ -89,7 +91,10 @@ def read_logs():
 		line = dockerProc.stdout.readline().decode("utf-8")
 		if line != '':
 			last_line_current_run = line
-			if "STAKING" in line:
+			if "No such container" in line:
+				container_died = True
+				break
+			elif "STAKING" in line:
 				status = ""
 				if "ONLINE" in line:
 					online += 1
@@ -162,17 +167,18 @@ def check_for_restart():
 	global offline_seconds;
 	global restarts;
 	global was_online_once;
+	global container_died;
 
 	if not config_auto_restart:
 		return
 
-	if offline_seconds > config_wait_before_restart:
+	if offline_seconds > config_wait_before_restart or container_died:
 
 		print("Offline for " + str(int(offline_seconds)) + " seconds. Restarting.")
 
 		offline_seconds = 0
 		was_online_once = False
-
+		container_died = False
 		
 		print("Stopping...")
 		subprocess.Popen(['aura','stop']).wait()
@@ -244,7 +250,7 @@ while True:
 
 	current_time = time.time()
 
-	if was_online_once and not is_online:
+	if (was_online_once and not is_online) or container_died:
 		offline_seconds += current_time - last_run
 		check_for_restart()
 	elif is_online:
