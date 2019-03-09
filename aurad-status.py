@@ -33,6 +33,7 @@ percentage_downtime = 0
 current_block_num = 0
 last_line = ""
 container_died = False
+script_version = ""
 
 was_online_once = False # Don't restart he node when it is syncing
 is_online = False
@@ -80,6 +81,7 @@ def read_logs():
 	global was_online_once;
 	global last_line;
 	global container_died;
+	global script_version;
 
 	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
@@ -147,6 +149,21 @@ def read_logs():
 		latest_version_line = npmProc.stdout.readline().decode("utf-8")
 		if latest_version_line != '':
 			latest_version = "v" + latest_version_line.rstrip()
+
+		local_commit_proc = subprocess.Popen(['git','rev-parse','HEAD'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+		local_commit = local_commit_proc.stdout.readline().decode("utf-8")
+
+		remote_commit_proc = subprocess.Popen(['git','rev-parse','origin/HEAD'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+		remote_commit = remote_commit_proc.stdout.readline().decode("utf-8")
+
+		if "not a git repository" in local_commit or "not a git repository" in remote_commit:
+			script_version = bcolors.FAIL + "Cannot check script version: Not a git repository" + bcolors.ENDC
+		else:
+			if remote_commit == local_commit:
+				script_version = bcolors.OKGREEN + "Script is up to date" + bcolors.ENDC
+			else:
+				script_version = bcolors.FAIL + "A new version of this script is available. Please run 'git pull' and restart this script" + bcolors.ENDC
+
 
 		fetch_latest_version_counter = 1
 	else:
@@ -259,6 +276,7 @@ while True:
 	last_run = current_time
 
 	
+	print(script_version)
 	print("")
 	print("Your version: " + version + " | Latest version: " + latest_version + " | " + version_status)
 	print("Status: " + status+ "\n")
