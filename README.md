@@ -1,6 +1,6 @@
-# Utility scripts for AuraD
+# Utility scripts for IdexD
 
-For more information about AURA Staking see also [auraview.net](https://auraview.net)
+For more information about IDEX Staking see also [auraview.net](https://auraview.net)
 
 ## Requirements
 Ubuntu machine with `python3` and `git` installed.
