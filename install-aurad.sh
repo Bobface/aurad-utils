@@ -97,7 +97,7 @@ echo y | ufw enable
 # Running as new user 
 
 su $new_user_name -c "curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.11/install.sh | bash"
-su $new_user_name -c 'cd ~; NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install 10.15; npm install -g @auroradao/aurad-cli'
+su $new_user_name -c 'cd ~; NVM_DIR="$HOME/.nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install 10.15; npm install -g @idexio/idexd-cli'
 
 echo ""
 echo "Set and done! Please logout (close the terminal) and login again to finish the installation."

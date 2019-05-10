@@ -83,7 +83,7 @@ def read_logs():
 	global container_died;
 	global script_version;
 
-	dockerProc = subprocess.Popen(['docker','logs','docker_aurad_1'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+	dockerProc = subprocess.Popen(['docker','logs','docker_idexd_1'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 
 	online = 0
 	offline = 0
@@ -135,7 +135,7 @@ def read_logs():
 
 	percentage_downtime = 100 - float(percentage_uptime)
 
-	auraProc = subprocess.Popen(['aura','status'],stdout=subprocess.PIPE)
+	auraProc = subprocess.Popen(['idex','status'],stdout=subprocess.PIPE)
 
 	version_line = auraProc.stdout.readline().decode("utf-8")
 	if version_line != '':
@@ -144,16 +144,16 @@ def read_logs():
 
 	# we don't need to fetch the latest version every time
 	if fetch_latest_version_counter == 0 or fetch_latest_version_counter >= 50:
-		npmProc = subprocess.Popen(['npm','show','@auroradao/aurad-cli','version'],stdout=subprocess.PIPE)
+		npmProc = subprocess.Popen(['npm','show','@idexio/idexd-cli','version'],stdout=subprocess.PIPE)
 
 		latest_version_line = npmProc.stdout.readline().decode("utf-8")
 		if latest_version_line != '':
 			latest_version = "v" + latest_version_line.rstrip()
 
-		local_commit_proc = subprocess.Popen(['git','rev-parse','HEAD'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+		local_commit_proc = subprocess.Popen(['git','rev-parse','master'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 		local_commit = local_commit_proc.stdout.readline().decode("utf-8")
 
-		remote_commit_proc = subprocess.Popen(['git','rev-parse','origin/HEAD'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+		remote_commit_proc = subprocess.Popen(['git','rev-parse','origin/master'],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 		remote_commit = remote_commit_proc.stdout.readline().decode("utf-8")
 
 		if "not a git repository" in local_commit or "not a git repository" in remote_commit:
@@ -171,7 +171,7 @@ def read_logs():
 
 
 	if latest_version != version:
-		version_status = bcolors.FAIL + bcolors.BOLD + "YOUR VERSION OF AURAD IS OUTDATED" + bcolors.ENDC
+		version_status = bcolors.FAIL + bcolors.BOLD + "YOUR VERSION OF IDEXD IS OUTDATED" + bcolors.ENDC
 	else:
 		version_status = bcolors.OKGREEN + "UP TO DATE" + bcolors.ENDC
 
@@ -198,18 +198,18 @@ def check_for_restart():
 		container_died = False
 		
 		print("Stopping...")
-		subprocess.Popen(['aura','stop']).wait()
+		subprocess.Popen(['idex','stop']).wait()
 
 		if config_download_latest:
 			print("Downloading latest version...")
-			subprocess.Popen(['npm','install','-g','@auroradao/aurad-cli']).wait()
+			subprocess.Popen(['npm','install','-g','@idexio/idexd-cli']).wait()
 
 		print("Starting...")
 
 		if config_rpc != "" and config_rpc != " ":
-			subprocess.Popen(['aura','start','--rpc',config_rpc]).wait()
+			subprocess.Popen(['idex','start','--rpc',config_rpc]).wait()
 		else:
-			subprocess.Popen(['aura','start']).wait()
+			subprocess.Popen(['idex','start']).wait()
 
 		restarts += 1
 		os.system("clear")
